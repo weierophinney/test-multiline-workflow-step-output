@@ -1,0 +1,31 @@
+name: Test multiline output
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  discover-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.tags.outputs.tags }}
+    steps:
+      - name: Compile tag list
+        id: tags
+        run: |
+          VERSION=1.11.3
+          MAJOR="v$(echo ${VERSION} | cut -d. -f1)"
+          MINOR="${MAJOR}.$(echo ${VERSION} | cut -d. -f2)"
+          echo "::set-output name=tags::${MAJOR}%0A${MINOR}"
+
+  output-tags:
+    runs-on: ubuntu-latest
+    needs: [discover-tags]
+    steps:
+      - name: Output tags
+        env:
+          TAGS: ${{ needs.discover-tags.outputs.tags }}
+        run: |
+          for TAG in ${TAGS};do
+              echo "Discovered ${TAG}"
+          done
